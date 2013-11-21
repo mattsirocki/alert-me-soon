@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Open+Sans:300"></link>
+        <link rel="stylesheet" type="text/css" href="resources/alert-me-soon.css"></link>
+        <script type="text/javascript" src="resources/jquery-2.0.3.min.js"></script>
+        <script type="text/javascript" src="resources/handlebars-v1.1.2.js"></script>
+        <script type="text/javascript" src="resources/alert-me-soon.js"></script>
+        <script type="text/javascript">
+            $(document).ready(function()
+            {
+                AlertMeSoon.add_type('asv',           'Armor/Sanctuary/Valor', 180, 10);
+                AlertMeSoon.add_type('rage',          'Rage/Cunning',          150, 1);
+                AlertMeSoon.add_type('invoke',        'Invoke',                20,  1);
+                AlertMeSoon.add_type('inspire',       'Inspire',               40,  5);
+                AlertMeSoon.add_type('shadow-figure', 'Shadow Figure',         150, 1);
+                AlertMeSoon.add_type('bladestorm',    'Bladestorm',            123, 3);
+            });
+        </script>
+    </head>
+    <body>
+        <div id="add-alert">Add Alert</div>
+    </body>
+</html>

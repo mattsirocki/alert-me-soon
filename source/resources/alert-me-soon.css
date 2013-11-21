@@ -1,0 +1,79 @@
+body
+{
+    border: 0;
+    margin: 5px;
+    padding: 0;
+
+    font-family: "Open Sans", sans-serif;
+    font-weight: 300;
+    line-height: 100%;
+    text-decoration: none;
+}
+
+#add-alert, .alert
+{
+    color: #FFFFFF;
+    padding: 10px;
+}
+
+.alert
+{
+    margin: 5px 0px;
+}
+
+#add-alert, .countdown, .settings
+{
+    display: inline-block;
+}
+
+#add-alert
+{
+    background-color: #EEEEEE;
+    color: #46a4da;
+    cursor: pointer;
+}
+
+#add-alert:hover
+{
+    color:  #237dac;
+}
+
+.countdown
+{
+    font-size: 14pt;
+}
+
+.settings
+{
+    font-size: 10pt;
+    vertical-align: middle;
+}
+
+.settings-field-name
+{
+    display: inline-block;
+    text-align: right;
+    width: 50px;
+}
+
+.settings-field-form
+{
+    display: inline-block;
+    margin: 2px;
+}
+
+select { width: 160px; }
+input  { border: 0; }
+
+input, select
+{
+    margin: 0;
+    padding: 0;
+}
+
+input[type=text]
+{
+    font-size: 12px;
+    height: 11px;
+    padding: 4px;
+}
