@@ -1,13 +1,13 @@
 ;(function ( $, window, document, undefined ) {
 
-window.AlertMeSoon = AlertMeSoon = {};
+var AlertMeSoon = window.AlertMeSoon = {};
 $.get('resources/template.html', function(data) {AlertMeSoon.template = Handlebars.compile(data);});
 
 AlertMeSoon.default_color = 'purple';
 
 AlertMeSoon.current_id = 0;
 
-ValueName = function(value, name)
+var ValueName = function(value, name)
 {
     this.value = value;
     this.name  = name;
@@ -47,7 +47,7 @@ AlertMeSoon.type_durations = {
     'custom':  [10, 1],
 };
 
-Alert = function()
+var Alert = function()
 {
     this.number = AlertMeSoon.current_id++;
     this.id = 'alert-' + this.number;
