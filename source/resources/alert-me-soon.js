@@ -59,6 +59,7 @@ AlertMeSoon.add = function(template)
 
     a.initialize();
 }
+
 AlertMeSoon.add_type = function(name, duration, repeat_buffer, repeat_for)
 {
     AlertMeSoon.types.push(name);
