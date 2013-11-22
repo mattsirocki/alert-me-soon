@@ -1,19 +1,23 @@
-;(function ( $, window, document, undefined ) {
+;(function ($, window, document, undefined) {
 
-var AlertMeSoon = window.AlertMeSoon = {};
-$.get('resources/template.html', function(data) {AlertMeSoon.template = Handlebars.compile(data);});
-
-AlertMeSoon.default_color = 'purple';
-
-AlertMeSoon.current_id = 0;
-
+// Helper Class for Handlebars Template
 var ValueName = function(value, name)
 {
     this.value = value;
     this.name  = name;
 }
 
-AlertMeSoon.colors = [
+// Set AlertMeSoon in Global Namespace
+var AlertMeSoon = window.AlertMeSoon = {};
+
+// Load Template via AJAX
+$.get('resources/template.html', function(data) {AlertMeSoon.template = Handlebars.compile(data);});
+
+AlertMeSoon.debug = false;
+AlertMeSoon.current_id = 0;
+
+AlertMeSoon.colors =
+[
     new ValueName('purple',  'Purple'),
     new ValueName('#ffa5d2', 'Pink ("Baby Pink")'),
     new ValueName('#ff69b4', 'Pink ("Hot Pink")'),
@@ -33,172 +37,226 @@ AlertMeSoon.colors = [
     new ValueName('teal',    'Teal'),
 ];
 
-AlertMeSoon.types = [
-    new ValueName('custom',  'Custom'),
+AlertMeSoon.types =
+[
+    'Custom',
 ];
 
-AlertMeSoon.add_type = function(value, name, duration, buffer)
+AlertMeSoon.type_durations =
 {
-    AlertMeSoon.types.push(new ValueName(value, name));
-    AlertMeSoon.type_durations[value] = [duration, buffer];
+    'Custom':  [10, 1, -1],
 };
 
-AlertMeSoon.type_durations = {
-    'custom':  [10, 1],
+//
+// Global API
+//
+
+AlertMeSoon.add = function(template)
+{
+    var a = new Alert();
+
+    $('body').append(template({alert: a, colors: this.colors, types: this.types}));
+
+    a.initialize();
+}
+AlertMeSoon.add_type = function(name, duration, repeat_buffer, repeat_for)
+{
+    AlertMeSoon.types.push(name);
+    AlertMeSoon.type_durations[name] = [duration, repeat_buffer, repeat_for];
 };
+
+//
+// Attach Automatic Add Listener
+//
+
+$(document).ready(function()
+{
+    $('#add-alert').on('click', function(e) {AlertMeSoon.add(AlertMeSoon.template);});
+});
+
+//
+// Alert Class
+//
 
 var Alert = function()
 {
-    this.number = AlertMeSoon.current_id++;
-    this.id = 'alert-' + this.number;
+    this.id = 'alert-' + AlertMeSoon.current_id++;
 
-    this.seconds = 0;
+    // Timer
+    this.interval     = undefined; // setInterval Return
+    this.finish       = undefined; // Finish Target
+    this.remaining    = undefined; // Seconds Remaining
+    this.repeat_count = undefined; // # of Repeats Started
+    this.restarting   = undefined;
 
-    this.interval   = undefined;
-    this.count      = 0;
-    this.repeat     = false;
-    this.restarting = false;
-    this.duration   = 0;
-    this.name       = "";
-    this.type       = undefined;
-    this.buffer     = 0;
-    this.beep       = false;
-    this.flash      = false;
-    this.dom        = {};
+    // Settings (from User)
+    this.binding       = undefined;
+    this.color         = undefined;
+    this.type          = undefined;
+    this.name          = undefined;
+    this.duration      = undefined;
+    this.repeat        = undefined;
+    this.repeat_buffer = undefined;
+    this.repeat_for    = undefined;
+    this.flash         = undefined;
+    this.beep          = undefined;
+
+    // Alert DOM Cache
+    this.dom = {};
 }
 
-Alert.prototype.initialize = function Alert_initialize_dom() {
-    this.dom['alert']                = document.getElementById(this.id);
-    this.dom['alert-beep']           = document.getElementById(this.id + '-beep');
-    this.dom['alert-beepbeep']       = document.getElementById(this.id + '-beepbeep');
-    this.dom['alert-form']           = document.getElementById(this.id + '-form');
-    this.dom['alert-settings']       = document.getElementById(this.id + '-settings');
-    this.dom['alert-countdown']      = document.getElementById(this.id + '-countdown');
-    this.dom['alert-countdown-name'] = document.getElementById(this.id + '-countdown-name');
-    this.dom['alert-countdown-time'] = document.getElementById(this.id + '-countdown-time');
-    this.dom['alert-countdown-restarting'] = $('#' + this.id + '-countdown .countdown-restarting');
+Alert.prototype.initialize = function()
+{
+    this.dom['alert']          = document.getElementById(this.id);
+    this.dom['start-reset']    = document.getElementById(this.id + '-start-reset');
+    this.dom['beep']           = document.getElementById(this.id + '-beep');
+    this.dom['beepbeep']       = document.getElementById(this.id + '-beepbeep');
+    this.dom['form']           = document.getElementById(this.id + '-form');
+    this.dom['settings']       = document.getElementById(this.id + '-settings');
+    this.dom['countdown']      = document.getElementById(this.id + '-countdown');
+    this.dom['countdown-name'] = document.getElementById(this.id + '-countdown-name');
+    this.dom['countdown-time'] = document.getElementById(this.id + '-countdown-time');
 
-    $(this.dom['alert-countdown']).hide();
+    this.add_settings_to_dom('at',              true);
+    this.add_settings_to_dom('binding',         true);
+    this.add_settings_to_dom('color',           true);
+    this.add_settings_to_dom('type',            true);
+    this.add_settings_to_dom('name',            true);
+    this.add_settings_to_dom('fixed_duration',  false);
+    this.add_settings_to_dom('custom_duration', true);
+    this.add_settings_to_dom('repeat',          true);
+    this.add_settings_to_dom('repeat_buffer',   true);
+    this.add_settings_to_dom('repeat_for',      true);
+    this.add_settings_to_dom('repeat_beep',     true);
+    this.add_settings_to_dom('flash',           true);
+    this.add_settings_to_dom('beep',            true);
 
-    this._add_settings_to_dom('color',           true);
-    this._add_settings_to_dom('type',            true);
-    this._add_settings_to_dom('fixed-duration',  false);
-    this._add_settings_to_dom('custom_duration', true);
-    this._add_settings_to_dom('name',            true);
-    this._add_settings_to_dom('repeat',          true);
-    this._add_settings_to_dom('buffer',          true);
-    this._add_settings_to_dom('flash',           true);
-    this._add_settings_to_dom('beep',            true);
+    //$(this.dom['settings-at']).change();
+    $(this.dom['settings-binding']).change();
+    $(this.dom['settings-color']).change();
+    $(this.dom['settings-type']).change();
+    $(this.dom['settings-name']).change();
+    $(this.dom['settings-custom_duration']).change();
+    $(this.dom['settings-repeat']).change();
+    $(this.dom['settings-repeat_buffer']).change();
+    $(this.dom['settings-repeat_for']).change();
+    $(this.dom['settings-repeat_beep']).change();
+    $(this.dom['settings-flash']).change();
+    $(this.dom['settings-beep']).change();
 
-    this.dom['alert-countdown-restarting'].hide();
+    // Attach listener to click events on the alert box. If the user clicks
+    // outside of the settings, the alert will toggle settings. Start/Reset
+    // button starts or resets the timer.
+    $(this.dom['alert']).on('click', null, this, function(e) {e.data.toggle_settings();});
+    $(this.dom['start-reset']).on('click', null, this, function(e) {e.data.start();});
 
-    this.dom['alert-settings-color'].value = AlertMeSoon.default_color;
-
-    this.set_color();
-    this.set_type();
-    this.set_name();
-    this.set_repeat();
-    this.set_custom_duration();
-    this.set_buffer();
-    this.set_flash();
-    this.set_beep();
-
-    // Attach some event listeners for starting the countdown.
-    $(this.dom['alert']).on('click', null, this, function(e) {e.data.toggle();});
-
-    $(window).on('keypress', null, this, function(e) {
+    // Add optional key binding for starting the alert. The user selects a
+    // binding key with a select box. This listener just checks keypresses
+    // against the selected value.
+    $(window).on('keypress', null, this, function(e)
+    {
         var tagName     = document.activeElement.tagName.toLowerCase();
         var not_editing = ['input', 'textarea', 'button', 'select', 'option', 'optgroup', 'fieldset', 'label'].indexOf(tagName) == -1;
 
-        if (not_editing && e.keyCode == (e.data.number + 48))
-            e.data.toggle();
+        if (not_editing && e.keyCode == (e.data.binding + 48))
+            e.data.start();
     });
 
-    $(this.dom['alert-form']).on('submit', null, this, function(e) {
-        e.data.toggle();
+    // Submitting the form (by pressing enter) should also start the alert
+    // timer. The template is responsible for ensuring the form can be
+    // submitted in nice ways.
+    $(this.dom['form']).on('submit', null, this, function(e)
+    {
+        e.data.start();
         e.preventDefault();
     });
 };
 
-Alert.prototype._add_settings_to_dom = function(name, listen)
+Alert.prototype.add_settings_to_dom = function(name, listen)
 {
-    this.dom['alert-settings-' + name]            = document.getElementById(this.id + '-settings-' + name)
-    this.dom['alert-settings-' + name + '-field'] = document.getElementById(this.id + '-settings-' + name + '-field')
+    this.dom['settings-' + name]            = document.getElementById(this.id + '-settings-' + name)
+    this.dom['settings-' + name + '-field'] = document.getElementById(this.id + '-settings-' + name + '-field')
 
     if (listen)
-        $(this.dom['alert-settings-' + name]).on('change', null, this, function(e) {e.data['set_' + name]();});
+        $(this.dom['settings-' + name]).on('change', null, this, function(e) {e.data['change_' + name](e);});
 };
 
-Alert.prototype.toggle = function()
+Alert.prototype.start = function()
 {
-    var start = $(this.dom['alert-settings']).is(':visible');
+    var start = this.finish === undefined;
 
     if (start && this.duration == 0)
         return;
 
-    if (start) {
-        this.finish   = new Date().getTime() + (this.duration * 1000);
+    if (start)
+    {
+        this.repeat_count = 0
+        this.finish       = new Date().getTime() + (this.duration * 1000);
 
         var self      = this;
         this.interval = setInterval(function() {self.countdown();}, 10);
-    } else {
-        clearInterval(this.interval);
-        this.remaining = undefined;
-        this.finish    = undefined;
-        this.restarting = false;
-        this.update_color();
-        this.update_restarting();
     }
-
-    $(this.dom['alert-settings']).toggle();
-    $(this.dom['alert-countdown']).toggle();
+    else
+    {
+        clearInterval(this.interval);
+        this.finish       = undefined;
+        this.remaining    = undefined;
+        this.repeat_count = 0;
+        this.restarting   = false;
+        this.update_color();
+        this.update_duration();
+    }
 };
 
-Alert.prototype.update_countdown = function()
+Alert.prototype.toggle_settings = function()
 {
-    this.dom['alert-countdown-time'].innerHTML = this.remaining.toFixed(2);
+    $(this.dom['settings']).toggle();
 };
 
 Alert.prototype.countdown = function()
 {
+    if (this.at !== undefined)
+    {
+        this.finish = new Date().getTime() + (this.at * 1000);
+        this.at     = undefined;
+    }
+
     this.remaining = (this.finish - new Date().getTime()) / 1000;
-    //console.log(true);
 
     if (this.remaining <= 0)
         this.remaining = 0;
 
-    this.update_color();
     this.update_countdown();
+    this.update_color();
     this.update_beep();
 
     if (this.remaining == 0)
     {
-        if (!this.repeat)
-            this.toggle();
+        if (!this.restarting && this.repeat_for > -1)
+        {
+            this.repeat_count++;
+
+            if (AlertMeSoon.debug)
+                console.log(this.id, 'count', this.repeat_count);
+        }
+
+        if (!this.repeat || this.repeat_count == this.repeat_for)
+            this.start();
         else
         {
-            this.restarting = this.buffer > 0 && !this.restarting;
-            this.finish = new Date().getTime() + ((this.restarting ? this.buffer : this.duration) * 1000);
-            this.update_restarting();
+            this.restarting = this.repeat_buffer > 0 && !this.restarting;
+            this.finish = new Date().getTime() + ((this.restarting ? this.repeat_buffer : this.duration) * 1000);
         }
     }
 };
 
-Alert.prototype.update_restarting = function()
-{
-    this.dom['alert-countdown-restarting'][this.restarting ? 'show' : 'hide']();
-};
+//
+// Update Graphical Things
+//
 
-Alert.prototype.update_beep = function()
+Alert.prototype.update_countdown = function()
 {
-    if (this.beep && this.remaining == 0)
-    {
-        if (this.restarting)
-            this.dom['alert-beepbeep'].play();
-        else
-            this.dom['alert-beep'].play();
-    }
-
+    this.dom['countdown-time'].innerHTML = this.remaining.toFixed(2);
 };
 
 Alert.prototype.update_color = function()
@@ -212,109 +270,209 @@ Alert.prototype.update_color = function()
     else if (this.restarting)
         $(this.dom['alert']).css('backgroundColor', 'gray');
     else
-        $(this.dom['alert']).css('backgroundColor', this.dom['alert-settings-color'].value);
-};
-
-
-
-
-
-Alert.prototype.set_color = function()
-{
-    this.color = this.dom['alert-settings-color'].value;
-    $(this.dom['alert']).css('backgroundColor', this.color);
-    //console.log('set color to ' + this.color);
+        $(this.dom['alert']).css('backgroundColor', this.dom['settings-color'].value);
 };
 
 Alert.prototype.update_name = function()
 {
-    var index = this.dom['alert-settings-type'].selectedIndex;
-    var name  = this.dom['alert-settings-type'].options[index].text;
-    this.dom['alert-settings-name'].value = name;
-    this.set_name();
+    var is_custom = (this.type == 'Custom');
+
+    $(this.dom['settings-name-field'])[is_custom ? 'show' : 'hide']();
+
+    this.dom['countdown-name'].innerHTML = this.name;
+    this.dom['settings-name'].value = this.name;
 };
 
-Alert.prototype.set_type = function()
+Alert.prototype.update_duration = function()
 {
-    this.type     = this.dom['alert-settings-type'].value;
-    //console.log('set type to ' + this.type);
+    var is_custom = (this.type == 'Custom');
 
-    var times     = AlertMeSoon.type_durations[this.type];
-    var is_custom = this.type == 'custom';
+    $(this.dom['settings-custom_duration-field']) [is_custom ? 'show' : 'hide']();
+    $(this.dom['settings-fixed_duration-field'])  [is_custom ? 'hide' : 'show']();
 
-    if (times !== undefined)
+    this.dom['settings-custom_duration'].value = this.duration;
+    this.dom['settings-fixed_duration'].innerHTML = this.duration;
+
+    // Only update the countdown if the timer is not running.
+    if (this.finish === undefined)
     {
-        if (times[0]) {
-            this.dom['alert-settings-custom_duration'].value    = times[0];
-            this.dom['alert-settings-fixed-duration'].innerHTML = times[0];
-            this.duration = times[0];
-        }
-
-        if (times[1]) {
-            this.dom['alert-settings-buffer'].value             = times[1];
-            this.buffer   = times[1];
-        }
+        this.remaining = this.duration;
+        this.update_countdown();
     }
+};
+
+Alert.prototype.update_repeat_buffer = function()
+{
+    $(this.dom['settings-repeat_buffer-field'])[this.repeat ? 'show' : 'hide']();
+
+    this.dom['settings-repeat_buffer'].value = this.repeat_buffer;
+};
+
+Alert.prototype.update_repeat_for = function()
+{
+    $(this.dom['settings-repeat_for-field'])[this.repeat ? 'show' : 'hide']();
+
+    this.dom['settings-repeat_for'].value = this.repeat_for;
+};
+
+Alert.prototype.update_repeat_beep = function()
+{
+    $(this.dom['settings-repeat_beep-field'])[this.repeat ? 'show' : 'hide']();
+};
+
+
+Alert.prototype.update_beep = function()
+{
+    if (this.remaining == 0)
+    {
+        if (this.restarting && this.repeat_beep)
+            this.dom['beepbeep'].play();
+        else if (!this.restarting && this.beep)
+            this.dom['beep'].play();
+    }
+};
+
+//
+// Change Listeners
+//
+
+Alert.prototype.change_at = function(event)
+{
+    var previous = this.remaining;
+    this.at = Number(this.dom['settings-at'].value);
+    this.dom['settings-at'].value = "";
+
+    if (isNaN(this.at))
+        this.at = previous
+
+    this.remaining = this.at;
+
+    this.update_countdown();
+
+    if (AlertMeSoon.debug)
+        console.log(this.id, 'at', this.at);
+};
+
+Alert.prototype.change_binding = function(event)
+{
+    this.binding = Number(this.dom['settings-binding'].value);
+
+    if (AlertMeSoon.debug)
+        console.log(this.id, 'binding', this.binding);
+};
+
+Alert.prototype.change_color = function(event)
+{
+    this.color = this.dom['settings-color'].value;
+
+    this.update_color();
+
+    if (AlertMeSoon.debug)
+        console.log(this.id, 'color', this.color);
+};
+
+Alert.prototype.change_type = function(event)
+{
+    var index = this.dom['settings-type'].selectedIndex;
+    var name  = this.dom['settings-type'].options[index].text;
+    this.type = name;
+    this.name = name;
+
+    var durations = AlertMeSoon.type_durations[this.type];
+
+    this.duration      = durations[0];
+    this.repeat_buffer = durations[1];
+    this.repeat_for    = durations[2];
 
     this.update_name();
-    $(this.dom['alert-settings-name-field'])[is_custom ? 'show' : 'hide']();
-    $(this.dom['alert-settings-custom_duration-field'])[is_custom ? 'show' : 'hide']();
-    $(this.dom['alert-settings-fixed-duration-field'])[is_custom ? 'hide' : 'show']();
+    this.update_duration();
+    this.update_repeat_buffer();
+    this.update_repeat_for();
+
+    if (AlertMeSoon.debug)
+        console.log(this.id, 'type', this.type);
 };
 
-Alert.prototype.set_name = function()
+Alert.prototype.change_name = function(event)
 {
-    this.name = this.dom['alert-settings-name'].value;
-    //console.log('set name to ' + this.name);
+    this.name = (this.type == 'Custom') ? this.dom['settings-name'].value : this.type;
 
-    this.dom['alert-countdown-name'].innerHTML = this.name;
+    this.update_name();
+
+    if (AlertMeSoon.debug)
+        console.log(this.id, 'name', this.name);
 };
 
-Alert.prototype.set_repeat = function()
+Alert.prototype.change_custom_duration = function(event)
 {
-    this.repeat = this.dom['alert-settings-repeat'].checked;
-    //console.log('set repeat to ' + this.repeat);
+    var previous  = this.duration;
+    this.duration = Number(this.dom['settings-custom_duration'].value);
 
-    // If the 'repeat' box is checked, show the buffer input field.
-    $(this.dom['alert-settings-buffer-field'])[this.repeat ? 'show' : 'hide']();
+    if (isNaN(this.duration))
+        this.duration = previous;
+
+    this.update_duration();
+
+    if (AlertMeSoon.debug)
+        console.log(this.id, 'duration', this.duration);
 };
 
-Alert.prototype.set_custom_duration = function(id)
+Alert.prototype.change_repeat = function(event)
 {
-    this.duration = Number(this.dom['alert-settings-custom_duration'].value);
-    //console.log('set duration to ' + this.duration);
-}
+    this.repeat = this.dom['settings-repeat'].checked;
 
-Alert.prototype.set_buffer = function(id)
+    this.update_repeat_buffer();
+    this.update_repeat_for();
+    this.update_repeat_beep();
+
+    if (AlertMeSoon.debug)
+        console.log(this.id, 'repeat', this.repeat);
+};
+
+Alert.prototype.change_repeat_buffer = function(event)
 {
-    this.buffer = Number(this.dom['alert-settings-buffer'].value);
-    //console.log('set buffer to ' + this.buffer);
-}
+    this.repeat_buffer = Number(this.dom['settings-repeat_buffer'].value);
 
-Alert.prototype.set_flash = function(id)
+    if (AlertMeSoon.debug)
+        console.log(this.id, 'repeat buffer', this.repeat_buffer);
+};
+
+Alert.prototype.change_repeat_for = function(event)
 {
-    this.flash = this.dom['alert-settings-flash'].checked;
-    //console.log('set flash to ' + this.flash);
-}
+    this.repeat_for = Number(this.dom['settings-repeat_for'].value);
 
-Alert.prototype.set_beep = function(id)
+    if (AlertMeSoon.debug)
+        console.log(this.id, 'repeat for', this.repeat_for);
+};
+
+Alert.prototype.change_repeat_beep = function(event)
 {
-    this.beep = this.dom['alert-settings-beep'].checked;
-    //console.log('set beep to ' + this.beep);
-}
+    this.repeat_beep = this.dom['settings-repeat_beep'].checked;
 
-AlertMeSoon.add = function(template)
+    if (this.repeat_beep)
+        this.dom['beepbeep'].play();
+
+    if (AlertMeSoon.debug)
+        console.log(this.id, 'repeat beep', this.repeat_beep);
+};
+
+Alert.prototype.change_flash = function(event)
 {
-    var a = new Alert();
+    this.flash = this.dom['settings-flash'].checked;
 
-    $('body').append(template({alert: a, colors: this.colors, types: this.types}));
+    if (AlertMeSoon.debug)
+        console.log(this.id, 'flash', this.flash);
+};
 
-    a.initialize();
-}
-
-$(document).ready(function()
+Alert.prototype.change_beep = function(event)
 {
-    $('#add-alert').on('click', function(e) {AlertMeSoon.add(AlertMeSoon.template);});
-});
+    this.beep = this.dom['settings-beep'].checked;
+
+    if (this.beep)
+        this.dom['beep'].play();
+
+    if (AlertMeSoon.debug)
+        console.log(this.id, 'beep', this.beep);
+};
 
 })(jQuery, window, document);

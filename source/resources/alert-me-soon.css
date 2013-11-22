@@ -6,36 +6,32 @@ body
 
     font-family: "Open Sans", sans-serif;
     font-weight: 300;
-    line-height: 100%;
     text-decoration: none;
-}
-
-#add-alert, .alert
-{
-    color: #FFFFFF;
-    padding: 10px;
 }
 
 .alert
 {
+    color: #FFFFFF;
     margin: 5px 0px;
 }
 
-#add-alert, .countdown, .settings
-{
-    display: inline-block;
-}
+.countdown, .settings { padding: 10px; }
 
-#add-alert
+.settings .box-button { margin: 10px; }
+
+#add-alert, .box-button, .settings { display: inline-block; }
+
+#add-alert, .box-button
 {
     background-color: #EEEEEE;
+    padding: 5px;
     color: #46a4da;
     cursor: pointer;
 }
 
-#add-alert:hover
+#add-alert:hover, .box-button:hover
 {
-    color:  #237dac;
+    color: blue;
 }
 
 .countdown
@@ -53,7 +49,7 @@ body
 {
     display: inline-block;
     text-align: right;
-    width: 50px;
+    width: 60px;
 }
 
 .settings-field-form
@@ -63,7 +59,6 @@ body
 }
 
 select { width: 160px; }
-input  { border: 0; }
 
 input, select
 {
@@ -73,7 +68,10 @@ input, select
 
 input[type=text]
 {
+    border: 0;
     font-size: 12px;
     height: 11px;
+    margin: 1px;
     padding: 4px;
+    width: 150px;
 }

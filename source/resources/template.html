@@ -6,15 +6,39 @@
         <source src="resources/beepbeep.ogg" type="audio/ogg"></source>
     </audio>
     <div id="{{alert.id}}-countdown" class="countdown">
-        <span class="countdown-restarting">Restarting </span>
+        <!-- <span class="countdown-restarting">Restarting </span> -->
         <span id="{{alert.id}}-countdown-name"></span>
-        <span class="countdown-restarting">in</span>
+        <!-- <span class="countdown-restarting">in</span> -->
         <span id="{{alert.id}}-countdown-time"></span>
         <span>Seconds</span>
     </div>
     <div id="{{alert.id}}-settings" class="settings" onclick="event.stopPropagation()">
+        <div id="{{alert.id}}-settings-at-field" class="settings-field">
+            <span class="settings-field-name">At</span>
+            <span class="settings-field-form">
+                <input id="{{alert.id}}-settings-at" type="text" pattern="[0-9]+" />
+            </span>
+        </div>
         <form id="{{alert.id}}-form">
             <input type="submit" style="position: absolute; left: -9999px; width: 1px; height: 1px;"/>
+            <div id="{{alert.id}}-settings-binding-field" class="settings-field">
+                <span class="settings-field-name">Binding</span>
+                <span class="settings-field-form">
+                    <select id="{{alert.id}}-settings-binding">
+                        <option value="-1"></option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                        <option value="6">6</option>
+                        <option value="7">7</option>
+                        <option value="8">8</option>
+                        <option value="9">9</option>
+                        <option value="0">0</option>
+                    </select>
+                </span>
+            </div>
             <div id="{{alert.id}}-settings-color-field" class="settings-field">
                 <span class="settings-field-name">Color</span>
                 <span class="settings-field-form">
@@ -30,7 +54,7 @@
                 <span class="settings-field-form">
                     <select id="{{alert.id}}-settings-type">
                         {{#each types}}
-                        <option value="{{this.value}}">{{this.name}}</option>
+                        <option value="{{this}}">{{this}}</option>
                         {{/each}}
                     </select>
                 </span>
@@ -41,9 +65,9 @@
                     <input id="{{alert.id}}-settings-name" type="text" />
                 </span>
             </div>
-            <div id="{{alert.id}}-settings-fixed-duration-field">
+            <div id="{{alert.id}}-settings-fixed_duration-field">
                 <span class="settings-field-name">Duration</span>
-                <span class="settings-field-form" id="{{alert.id}}-settings-fixed-duration"></span>
+                <span class="settings-field-form" id="{{alert.id}}-settings-fixed_duration"></span>
                 <span class="settings-field-text">Seconds</span>
             </div>
             <div id="{{alert.id}}-settings-custom_duration-field" class="settings-field">
@@ -59,17 +83,35 @@
                     <input id="{{alert.id}}-settings-repeat" type="checkbox" />
                 </span>
             </div>
-            <div id="{{alert.id}}-settings-buffer-field" class="settings-field">
+            <div id="{{alert.id}}-settings-repeat_buffer-field" class="settings-field">
                 <span class="settings-field-name">Buffer</span>
                 <span class="settings-field-form">
-                    <input id="{{alert.id}}-settings-buffer" type="text" pattern="[0-9]+" />
+                    <input id="{{alert.id}}-settings-repeat_buffer" type="text" pattern="[0-9]+" />
                 </span>
                 <span class="settings-field-text">Seconds</span>
             </div>
-            <div id="{{alert.id}}-settings-flash-field" class="settings-field">
-                <span class="settings-field-name"><label for="{{alert.id}}-flash">Flash</label></span>
+            <div id="{{alert.id}}-settings-repeat_for-field" class="settings-field">
+                <span class="settings-field-name">For</span>
                 <span class="settings-field-form">
-                    <input id="{{alert.id}}-settings-flash" type="checkbox" />
+                    <select id="{{alert.id}}-settings-repeat_for">
+                        <option value="-1">Infinite</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                        <option value="6">6</option>
+                        <option value="7">7</option>
+                        <option value="8">8</option>
+                        <option value="9">9</option>
+                    </select>
+                </span>
+                <span class="settings-field-text">Countdowns</span>
+            </div>
+            <div id="{{alert.id}}-settings-repeat_beep-field" class="settings-field">
+                <span class="settings-field-name"><label for="{{alert.id}}-repeat_beep">BeepBeep</label></span>
+                <span class="settings-field-form">
+                    <input id="{{alert.id}}-settings-repeat_beep" type="checkbox" />
                 </span>
             </div>
             <div id="{{alert.id}}-settings-beep-field" class="settings-field">
@@ -78,6 +120,13 @@
                     <input id="{{alert.id}}-settings-beep" type="checkbox" />
                 </span>
             </div>
+            <div id="{{alert.id}}-settings-flash-field" class="settings-field">
+                <span class="settings-field-name"><label for="{{alert.id}}-flash">Flash</label></span>
+                <span class="settings-field-form">
+                    <input id="{{alert.id}}-settings-flash" type="checkbox" />
+                </span>
+            </div>
         </form>
+        <div id="{{alert.id}}-start-reset" class="box-button">Start/Reset</div>
     </div>
 </div>
