@@ -3,7 +3,7 @@
         <source src="resources/beep.ogg" type="audio/ogg"></source>
     </audio>
     <audio id="{{alert.id}}-beepbeep">
-        <source src="resources/beepbeep.ogg" type="audio/ogg"></source>
+        <source src="resources/beep.ogg" type="audio/ogg"></source>
     </audio>
     <div id="{{alert.id}}-countdown" class="countdown">
         <!-- <span class="countdown-restarting">Restarting </span> -->
@@ -13,14 +13,14 @@
         <span>Seconds</span>
     </div>
     <div id="{{alert.id}}-settings" class="settings" onclick="event.stopPropagation()">
-        <div id="{{alert.id}}-settings-at-field" class="settings-field">
-            <span class="settings-field-name">At</span>
-            <span class="settings-field-form">
-                <input id="{{alert.id}}-settings-at" type="text" pattern="[0-9]+" />
-            </span>
-        </div>
         <form id="{{alert.id}}-form">
-            <input type="submit" style="position: absolute; left: -9999px; width: 1px; height: 1px;"/>
+            <input type="submit" style="position: absolute; left: -9999px; width: 1px; height: 1px;" tabindex="-1" />
+            <div id="{{alert.id}}-settings-at-field" class="settings-field">
+                <span class="settings-field-name">At</span>
+                <span class="settings-field-form">
+                    <input id="{{alert.id}}-settings-at" type="text" />
+                </span>
+            </div>
             <div id="{{alert.id}}-settings-binding-field" class="settings-field">
                 <span class="settings-field-name">Binding</span>
                 <span class="settings-field-form">
@@ -73,7 +73,7 @@
             <div id="{{alert.id}}-settings-custom_duration-field" class="settings-field">
                 <span class="settings-field-name">Duration</span>
                 <span class="settings-field-form">
-                    <input id="{{alert.id}}-settings-custom_duration" type="text" pattern="[0-9]+" />
+                    <input id="{{alert.id}}-settings-custom_duration" type="text" />
                 </span>
                 <span class="settings-field-text">Seconds</span>
             </div>
@@ -83,15 +83,8 @@
                     <input id="{{alert.id}}-settings-repeat" type="checkbox" />
                 </span>
             </div>
-            <div id="{{alert.id}}-settings-repeat_buffer-field" class="settings-field">
-                <span class="settings-field-name">Buffer</span>
-                <span class="settings-field-form">
-                    <input id="{{alert.id}}-settings-repeat_buffer" type="text" pattern="[0-9]+" />
-                </span>
-                <span class="settings-field-text">Seconds</span>
-            </div>
             <div id="{{alert.id}}-settings-repeat_for-field" class="settings-field">
-                <span class="settings-field-name">For</span>
+                <span class="settings-field-name"></span>
                 <span class="settings-field-form">
                     <select id="{{alert.id}}-settings-repeat_for">
                         <option value="-1">Infinite</option>
@@ -108,22 +101,35 @@
                 </span>
                 <span class="settings-field-text">Countdowns</span>
             </div>
-            <div id="{{alert.id}}-settings-repeat_beep-field" class="settings-field">
-                <span class="settings-field-name"><label for="{{alert.id}}-repeat_beep">BeepBeep</label></span>
+            <div id="{{alert.id}}-settings-repeat_buffer-field" class="settings-field">
+                <span class="settings-field-name">Buffer</span>
                 <span class="settings-field-form">
+                    <input id="{{alert.id}}-settings-repeat_buffer" type="text" />
+                </span>
+                <span class="settings-field-text">Seconds</span>
+            </div>
+            <div class="settings-field">
+                <span class="settings-field-name">Beep</span>
+                <span class="settings-field-text">at</span>
+                <span id="{{alert.id}}-settings-beep-field" class="settings-field-form">
+                    <label for="{{alert.id}}-settings-beep">Finish</label>
+                    <input id="{{alert.id}}-settings-beep" type="checkbox" />
+                </span>
+                <span id="{{alert.id}}-settings-repeat_beep-field" class="settings-field-form">
+                    <label for="{{alert.id}}-settings-repeat_beep">Restart</label>
                     <input id="{{alert.id}}-settings-repeat_beep" type="checkbox" />
                 </span>
             </div>
-            <div id="{{alert.id}}-settings-beep-field" class="settings-field">
-                <span class="settings-field-name"><label for="{{alert.id}}-beep">Beep</label></span>
-                <span class="settings-field-form">
-                    <input id="{{alert.id}}-settings-beep" type="checkbox" />
-                </span>
-            </div>
-            <div id="{{alert.id}}-settings-flash-field" class="settings-field">
-                <span class="settings-field-name"><label for="{{alert.id}}-flash">Flash</label></span>
-                <span class="settings-field-form">
+            <div class="settings-field">
+                <span class="settings-field-name">Flash</span>
+                <span class="settings-field-text">at</span>
+                <span id="{{alert.id}}-settings-flash-field" class="settings-field-form">
+                    <label for="{{alert.id}}-settings-flash">Finish</label>
                     <input id="{{alert.id}}-settings-flash" type="checkbox" />
+                </span>
+                <span id="{{alert.id}}-settings-repeat_flash-field" class="settings-field-form">
+                    <label for="{{alert.id}}-settings-repeat_flash">Restart</label>
+                    <input id="{{alert.id}}-settings-repeat_flash" type="checkbox" />
                 </span>
             </div>
         </form>
